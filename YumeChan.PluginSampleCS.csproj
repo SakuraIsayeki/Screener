@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>true</ImplicitUsings>
+    
+    <!-- 
+      From there on, it's all yours. Modify these to your needs.
+      Also don't forget to change the name of the project.
+     -->
+    <Version>3.0</Version>
+    <Authors>Sakura Akeno Isayeki</Authors>
+    <Company>YumeChan-DT</Company>
+    <Product>Plugin Sample (C#)</Product>
+    <NeutralLanguage>en</NeutralLanguage>
+    <RepositoryType>Git</RepositoryType>
+    <RepositoryUrl>https://github.com/YumeChan-DT/SamplePlugin-CS</RepositoryUrl>
+    <PackageTags />
+    <Copyright>MIT License</Copyright>
+    
+  </PropertyGroup>
+
+  <!-- 
+    Build properties defined here are relevant to debugging on your machine.
+    Plugins will load on a common directory, defined by the $(YumeChan_PluginsLocation) variable.
+    You can use the $(YumeChan_PluginsLocation) variable to define the location of your plugins (define in YC3 coreconfig.json file).
+   -->
+  <PropertyGroup>
+    <OutDir>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutDir>
+    <OutputPath>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Additional dependencies can be added, in case you need extras on your plugin (like SlashCommands, and maybe a logger). -->
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+    
+    <!-- Required dependency on YC PluginBase -->
+    <PackageReference Include="YumeChan.PluginBase" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>
