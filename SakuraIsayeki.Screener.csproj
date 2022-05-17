@@ -29,16 +29,46 @@
   <PropertyGroup>
     <OutDir>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutDir>
     <OutputPath>$(YumeChan_PluginsLocation)\$(MSBuildProjectName)</OutputPath>
+    <StaticWebAssetBasePath>wwwroot</StaticWebAssetBasePath>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <!-- Additional dependencies can be added, in case you need extras on your plugin (like SlashCommands, and maybe a logger). -->
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    
+
     <!-- Required dependency on YC PluginBase -->
     <PackageReference Include="YumeChan.PluginBase" Version="3.0.0" />
   </ItemGroup>
+  
+  
+  
+  <!-- 
+    Past this, it's all Web dev stuff. 
+  -->
+  
+  <ItemGroup>
+    <None Remove=".git" />
+    <None Remove=".gitignore" />
+    <None Remove="LICENSE" />
 
+    <!-- Hiding compiled CSS files, as we exclusively use SCSS in sources -->
+    <Content Update="**/*.css" Visible="false" />
+
+    <EmbeddedResource Include="wwwroot/**/*.*" />
+
+    <Content Update="wwwroot/**/*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Used only for development, to reference NetRunner's web assets -->
+    <None Include="$(YumeChan_PluginsLocation)\..\wwwroot\**\*.*" Link="wwwroot\baseref\%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="*.ts" />
+  </ItemGroup>
 </Project>
