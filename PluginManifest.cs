@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using YumeChan.PluginBase;
 
-namespace YumeChan.PluginSampleCS;
+namespace SakuraIsayeki.Screener;
 
 // This Class defines the Plugin, and makes it visible to the Loader.
 public class PluginManifest : Plugin // This Class MUST be set as public to get picked up by the Plugin Loader.
 {
 	// This defines your Plugin's Display name.
-	public override string DisplayName => "YumeChan : Sample Plugin";
+	public override string DisplayName => "Screener";
 
 	// This flag defines whether your Plugin should be shown to the general public or not.
 	// Still shown to Server Operators, this is useful for security plugins, or plugins requiring covert operation.

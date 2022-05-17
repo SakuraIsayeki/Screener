@@ -9,10 +9,10 @@
       From there on, it's all yours. Modify these to your needs.
       Also don't forget to change the name of the project.
      -->
-    <Version>3.0</Version>
+    <Version>1.0</Version>
     <Authors>Sakura Akeno Isayeki</Authors>
-    <Company>YumeChan-DT</Company>
-    <Product>Plugin Sample (C#)</Product>
+    <Product>Screener</Product>
+    <Description>Simple screening and greeting plugin for YumeChan</Description>
     <NeutralLanguage>en</NeutralLanguage>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/YumeChan-DT/SamplePlugin-CS</RepositoryUrl>

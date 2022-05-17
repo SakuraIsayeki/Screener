@@ -1,7 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace YumeChan.PluginSampleCS.Commands;
+namespace SakuraIsayeki.Screener.Commands;
 
 
 /// <summary>

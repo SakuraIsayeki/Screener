@@ -1,7 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace YumeChan.PluginSampleCS.Commands;
+namespace SakuraIsayeki.Screener.Commands;
 
 // Commands defined here can be stateless.
 // This also means the IDE will easily be triggered to suggest turning your commands into static methods, which would break 'em. 
