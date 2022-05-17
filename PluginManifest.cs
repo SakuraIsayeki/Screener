@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SakuraIsayeki.Screener.Data;
 using YumeChan.PluginBase;
+using YumeChan.PluginBase.Tools.Data;
 
 namespace SakuraIsayeki.Screener;
 
@@ -44,6 +46,8 @@ public class DependencyInjectionAddons : DependencyInjectionHandler
 		 */
 		
 		// Add your services here.
+
+		services.AddTransient(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildConfig>("config"));
 		
 		return services;
 	}
