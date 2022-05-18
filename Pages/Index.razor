@@ -1,0 +1,10 @@
+﻿@page "/"
+@layout PanelLayout
+
+<h3>Index</h3>
+@GuildId.ToString()
+
+@code {
+	[CascadingParameter(Name = "GuildId")]
+	public ulong GuildId { get; set; }
+}
