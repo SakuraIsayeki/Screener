@@ -1,7 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using SakuraIsayeki.Screener.Data;
 
 namespace SakuraIsayeki.Screener.Services;
@@ -28,21 +27,21 @@ public class ScreeningService
 	/// <param name="acceptedBy">Guild operator who screened the user</param>
 	public async Task AcceptMemberAsync(DiscordGuild guild, DiscordMember member, DiscordMember acceptedBy)
 	{
-		GuildConfig config = await _configService.GetGuildConfigAsync(guild.Id);
+		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(guild.Id);
 		
 		// Add the member roles to the member
 		// Parrallelize this to speed up the process
-		await Task.WhenAll(config.MemberRoleIds.Select(role => member.GrantRoleAsync(guild.GetRole(role))));
+		await Task.WhenAll(screeningConfig.MemberRoleIds.Select(role => member.GrantRoleAsync(guild.GetRole(role))));
 		
 		// Remove the guest roles from the member
 		// Same spiel as above
-		await Task.WhenAll(config.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
+		await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
 
 		// Send a message to the user
 		// TODO: Make this a configurable message
 		
 		// Report to the Screening logs channel that the user has been accepted
-		if (guild.Channels.TryGetValue(config.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
+		if (guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
 		{
 			await channel.SendMessageAsync($"{member.Mention} has been accepted by {acceptedBy.Mention}");
 		}
@@ -63,10 +62,10 @@ public class ScreeningService
 	/// <param name="reason">Reason for the rejection</param>
 	public async Task RejectMemberAsync(DiscordGuild guild, DiscordMember member, DiscordMember rejectedBy, ScreeningRejectActions actions, string reason)
 	{
-		GuildConfig config = await _configService.GetGuildConfigAsync(guild.Id);
+		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(guild.Id);
 
 		// Log the rejection to the screening logs channel
-		if (guild.Channels.TryGetValue(config.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
+		if (guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
 		{
 			await channel.SendMessageAsync($"{member.Mention} has been rejected by {rejectedBy.Mention} for {reason}");
 		}
@@ -96,7 +95,7 @@ public class ScreeningService
 		else if ((actions & ScreeningRejectActions.RemoveGuestRoles) is not 0)
 		{
 			// Remove guest roles from the user
-			await Task.WhenAll(config.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
+			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
 		}
 	}
 }

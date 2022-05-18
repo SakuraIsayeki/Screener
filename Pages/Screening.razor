@@ -1,0 +1,132 @@
+﻿@page "/screening/{GuildIdStr}"
+@layout PanelLayout
+
+@using SakuraIsayeki.Screener.Data
+@using SakuraIsayeki.Screener.Infrastructure.Security.Authorization
+
+@inject DiscordClient BotClient
+@inject GuildConfigService ConfigService
+
+@if (_config is not null)
+{
+	<AuthorizeView Policy="@AuthorizationExtensions.RequireOperatorPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
+		<Authorized>
+			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
+				<div><h1><i class="bi-person-bounding-box me-3"></i>Screening Configuration</h1></div>
+				@RazorUtilities.GuildCornerInfo(_guild!)
+			</div>
+
+
+			<hr class="my-5" />
+
+			@if (_displaySaveAlert)
+			{
+				<div class="alert alert-success my-3">
+					<p class="my-0">
+						<i class="bi-check-circle me-3"></i>Changes to Guild screeningConfiguration were saved!
+					</p>
+				</div>
+			}
+
+			@if (_config is not null)
+			{
+				<EditForm Model="_config" OnValidSubmit="OnValidSubmitAsync" Context="configContext">
+					<div class="row gap-xl-3 my-5" id="config">
+						<div class="col-xl-3" id="join-leave-logs">
+							<h3><i class="bi-journal-text me-3"></i>Logs</h3>
+    
+							<div class="my-3">
+								<label class="form-label">Screening Log channel</label>
+    
+								<select @bind="@_config.ScreeningLogsChannelId" class="form-select">
+									@RazorUtilities.GuildTextChannelsSelectList((_config.ScreeningLogsChannelId, _guild!))
+								</select>
+							</div>
+						</div>
+						
+						<div class="col-xl-4 col-lg-6" id="guest-roles">
+							<h3><i class="bi-person-plus-fill me-3"></i>Guest Roles</h3>
+
+							<div class="my-3">
+								<label class="form-label">Guest-specific Roles</label>
+    
+								<select multiple @bind="@_config.GuestRoleIds" class="form-select" size="@(_guild!.Roles.Count > 10 ? 10 : _guild.Roles.Count)">
+									@foreach (DiscordRole role in _guild!.Roles.Values.OrderBy(x => x.Position))
+									{
+										<option value="@role.Id">@role.Name</option>
+									}
+								</select>
+								
+								<p class="small text-muted">(Use CTRL+Click to select multiple)</p>
+							</div>
+						</div>
+						
+						<div class="col-xl-4 col-lg-6" id="guest-roles">
+                            <h3><i class="bi-person-plus-fill me-3"></i>Member Roles</h3>
+
+                        	<div class="my-3">
+	                            <label class="form-label">Member-specific Roles</label>
+	                            <select multiple @bind="@_config.MemberRoleIds" class="form-select" size="@(_guild!.Roles.Count > 10 ? 10 : _guild.Roles.Count)">
+		                            @foreach (DiscordRole role in _guild!.Roles.Values.OrderBy(x => x.Position))
+		                            {
+			                            <option value="@role.Id">@role.Name</option>
+		                            }
+	                            </select>
+	                            
+	                            <p class="small text-muted">(Use CTRL+Click to select multiple)</p>
+                            </div>
+                        </div>
+					</div>
+
+					<div>
+						<button class="btn btn-success px-5" type="submit">Save</button>
+					</div>
+				</EditForm>
+			}
+		</Authorized>
+
+		<NotAuthorized>
+			<h3 class="text-danger mx-3 my-5">
+				<i class="bi-shield-fill-x me-3"></i>
+				You are not authorized to edit settings for Guild <span class="font-monospace">@_guild!.Id.ToString()</span>.
+			</h3>
+		</NotAuthorized>
+	</AuthorizeView>
+}
+else if (_guild is not null) 
+{
+	<h3 class="text-info">Loading...</h3>
+}
+else
+{
+	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildId.ToString()</span>.</h3>
+}
+
+
+@code {
+	
+	[Parameter] public string GuildIdStr { get; set; }
+	[CascadingParameter(Name = "GuildId"), SupplyParameterFromQuery] public ulong GuildId { get; set; }
+
+	private bool _displaySaveAlert = false;
+
+	private DiscordGuild? _guild;
+	private GuildScreeningConfig? _config;
+	
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		if ((GuildId is var guildId and not 0 || ulong.TryParse(GuildIdStr, out guildId)) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+		{
+			_guild = guild;
+			_config = await ConfigService.GetGuildScreeningConfigAsync(_guild.Id);
+		}
+	}
+	
+	private async Task OnValidSubmitAsync()
+	{
+		await ConfigService.SaveGuildScreeningConfigAsync(_config!);
+		_displaySaveAlert = true;
+	}
+}

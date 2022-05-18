@@ -16,10 +16,13 @@
 </div>
 
 @code {
-	Navbar _navbar = new();
-	
+	/// <summary>
+	/// Triggered when the selected guild id changes.
+	/// </summary>
 	public void OnSelectedGuildIdChanged() => StateHasChanged();
 
+	private Navbar _navbar = new();
+	
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		await base.OnAfterRenderAsync(firstRender);
@@ -30,5 +33,4 @@
 			await JsRuntime.InvokeVoidAsync("loadCss", "css/layout.css");
 		}
 	}
-
 }

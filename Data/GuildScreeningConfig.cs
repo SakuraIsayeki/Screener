@@ -7,7 +7,7 @@ namespace SakuraIsayeki.Screener.Data;
 /// <summary>
 /// Represents guild-specific configuration.
 /// </summary>
-public record GuildConfig
+public record GuildScreeningConfig
 {
 	/// <summary>
 	/// ID of the guild to which this configuration belongs.
@@ -23,10 +23,10 @@ public record GuildConfig
 	/// <summary>
 	/// IDs of roles belonging to guests.
 	/// </summary>
-	public List<ulong> GuestRoleIds { get; set; } = new();
+	public ulong[] GuestRoleIds { get; set; } = Array.Empty<ulong>();
 	
 	/// <summary>
 	/// IDs of roles belonging to members.
 	/// </summary>
-	public List<ulong> MemberRoleIds { get; set; } = new();
+	public ulong[] MemberRoleIds { get; set; } = Array.Empty<ulong>();
 }
