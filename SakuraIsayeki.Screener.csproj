@@ -15,7 +15,7 @@
     <Description>Simple screening and greeting plugin for YumeChan</Description>
     <NeutralLanguage>en</NeutralLanguage>
     <RepositoryType>Git</RepositoryType>
-    <RepositoryUrl>https://github.com/YumeChan-DT/SamplePlugin-CS</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SakuraIsayeki/Screener</RepositoryUrl>
     <PackageTags />
     <Copyright>MIT License</Copyright>
     
