@@ -6,6 +6,8 @@ namespace SakuraIsayeki.Screener;
 
 public static class Utilities
 {
+	public const string ConfigurationUrl = "https://yumechan.nodsoft.net/p/SakuraIsayeki.Screener/";
+	
 	/// <summary>
 	/// Get the Discord Snowflake ID of the currently authenticated user.
 	/// </summary>

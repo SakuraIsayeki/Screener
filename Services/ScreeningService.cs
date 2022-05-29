@@ -22,57 +22,55 @@ public class ScreeningService
 	/// <summary>
 	/// Accepts a new member into the guild, switching their guest roles with member-specific roles.
 	/// </summary>
-	/// <param name="guild">Guild on which the screening is taking place on</param>
 	/// <param name="member">Guild member being screened</param>
 	/// <param name="acceptedBy">Guild operator who screened the user</param>
-	public async Task AcceptMemberAsync(DiscordGuild guild, DiscordMember member, DiscordMember acceptedBy)
+	public async Task AcceptMemberAsync(DiscordMember member, DiscordMember acceptedBy)
 	{
-		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(guild.Id);
-		
+		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(member.Guild.Id);
+
 		// Add the member roles to the member
 		// Parrallelize this to speed up the process
-		await Task.WhenAll(screeningConfig.MemberRoleIds.Select(role => member.GrantRoleAsync(guild.GetRole(role))));
-		
+		await Task.WhenAll(screeningConfig.MemberRoleIds.Select(role => member.GrantRoleAsync(member.Guild.GetRole(role))));
+
 		// Remove the guest roles from the member
 		// Same spiel as above
-		await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
+		await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(member.Guild.GetRole(role))));
 
 		// Send a message to the user
 		// TODO: Make this a configurable message
-		
+
 		// Report to the Screening logs channel that the user has been accepted
-		if (guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
+		if (member.Guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
 		{
-			await channel.SendMessageAsync($"{member.Mention} has been accepted by {acceptedBy.Mention}");
+			await channel.SendMessageAsync($"User {member.Mention} has been accepted by {acceptedBy.Mention}");
 		}
 		// Anything else is strange. Log the missing channel.
 		else
 		{
-			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", guild.Id.ToString());
+			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id.ToString());
 		}
 	}
 
 	/// <summary>
 	/// Rejects a new member into the guild, removing their guest roles, and optionally removing them from the guild.
 	/// </summary>
-	/// <param name="guild">Guild on which the screening is taking place on</param>
 	/// <param name="member">Guild member being screened</param>
 	/// <param name="rejectedBy">Guild operator who screened the user</param>
 	/// <param name="actions">Actions to be taken on the rejected user</param>
 	/// <param name="reason">Reason for the rejection</param>
-	public async Task RejectMemberAsync(DiscordGuild guild, DiscordMember member, DiscordMember rejectedBy, ScreeningRejectActions actions, string reason)
+	public async Task RejectMemberAsync(DiscordMember member, DiscordMember rejectedBy, ScreeningRejectActions actions, string reason)
 	{
-		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(guild.Id);
+		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(member.Guild.Id);
 
 		// Log the rejection to the screening logs channel
-		if (guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
+		if (member.Guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
 		{
-			await channel.SendMessageAsync($"{member.Mention} has been rejected by {rejectedBy.Mention} for {reason}");
+			await channel.SendMessageAsync($"User {member.Mention} has been rejected by {rejectedBy.Mention} for {reason}");
 		}
 		// Or log a missing channel
 		else
 		{
-			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", guild.Id.ToString());
+			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id.ToString());
 		}
 
 		// Act upon actions requested
@@ -81,7 +79,7 @@ public class ScreeningService
 			// Send a message to the user
 			// TODO: message
 		}
-		
+
 		if ((actions & ScreeningRejectActions.Ban) is not 0)
 		{
 			// Ban the user
@@ -95,7 +93,21 @@ public class ScreeningService
 		else if ((actions & ScreeningRejectActions.RemoveGuestRoles) is not 0)
 		{
 			// Remove guest roles from the user
-			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(guild.GetRole(role))));
+			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(member.Guild.GetRole(role))));
 		}
+	}
+	
+	/// <summary>
+	/// Checks a user's roles against the guild's screening config, making sure that they possess all member roles.
+	/// </summary>
+	/// <param name="member">Server member to check against screening</param>
+	/// <returns>true for a member ; false for a guest</returns>
+	public async Task<bool> UserWasScreenedAsync(DiscordMember member)
+	{
+		// Get the screening config
+		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(member.Guild.Id);
+
+		// Check if the user has all the member roles
+		return member.Roles.Select(r => r.Id).All(screeningConfig.MemberRoleIds.Contains);
 	}
 }

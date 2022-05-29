@@ -1,37 +1,55 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
+using Microsoft.Extensions.DependencyInjection;
+using SakuraIsayeki.Screener.Data;
+using SakuraIsayeki.Screener.Infrastructure.Preconditions;
+using SakuraIsayeki.Screener.Services;
 
 namespace SakuraIsayeki.Screener.Commands;
 
 
 /// <summary>
-/// Base command class for all commands in the "sample" group.
+/// Base group for all Screener slash commands.
 /// </summary>
-/// <remarks>
-///	Commands defined within this class will can be invoked using prefix "==sample &lt;command&gt;".
-/// </remarks>
-[Group("sample"), Description("Base prefix for all SamplePluginCS commands.")]
-public partial class BaseCommandGroup : BaseCommandModule
+[Group("screener"), Description("Base prefix for all Screener commands."), RequireGuild]
+public partial class BaseCommandGroup : ApplicationCommandModule
 {
- /*
-  * This partial class is the baseline for all command groups.
-  * You define a base class to nest commands inside the "sample" group,
-  * but also allowing you to have further groups nested inside the "sample" group.
-  *
-  * Examples :
-  *   ==sample ping <arguments>		[Command] (this command is contained in "==sample" prefix)
-  *   ==sample config <command>		[Group] (any command in the group will be prefixed with "==sample config")
-  *   ==sample config api <command>	[Group] (any command in the group will be prefixed with "==sample config api")
-  *   ==sample debug <command>		[Group] (any command in the group will be prefixed with "==sample debug")
-  *
-  *
-  * Any further nested groups (like "debug", "config" (and "api")) 
-  * must also define descending partial classes, if they want to use separate files (for clarity).
-  *
-  * This would give you the following class structure :
-  *   BaseCommandGroup.cs
-  *   ├─ ConfigCommandGroup.cs
-  *	 │  └─ ApiCommandGroup.cs
-  *   └─ DebugCommandGroup.cs
-  */	
+	private readonly ScreeningService _screeningService;
+
+	public BaseCommandGroup(ScreeningService screeningService)
+	{
+		_screeningService = screeningService;
+	}
+
+	[Command("accept"), Description("Accepts a user through screening, granting them member roles."), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers)]
+	public async Task AcceptAsync(CommandContext ctx, [Description("User to accept screening for")] DiscordMember member)
+	{
+		// Check if the user is already a member.
+		if (await _screeningService.UserWasScreenedAsync(member))
+		{
+			await ctx.RespondAsync($"{member.Mention} is already a member.");
+			return;
+		}
+		
+		// Otherwise, accept the user.
+		await _screeningService.AcceptMemberAsync(member, ctx.Member!);
+	}
+
+	[Command("reject"), Description("Rejects a user from screening"), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers)]
+	public async Task RejectAsync(CommandContext ctx, [Description("User to reject from screening")] DiscordMember member, [RemainingText] string? reason = null)
+	{
+		// Check if the user is already a member.
+		if (await _screeningService.UserWasScreenedAsync(member))
+		{
+			await ctx.RespondAsync($"{member.Mention} is already a member.");
+			return;
+		}
+		
+		// Otherwise, accept the user.
+		await _screeningService.RejectMemberAsync(member, ctx.Member!, ScreeningRejectActions.InformUser, reason);
+	}
 }

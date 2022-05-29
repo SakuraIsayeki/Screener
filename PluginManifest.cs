@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using SakuraIsayeki.Screener.Data;
 using SakuraIsayeki.Screener.Infrastructure.Security.Authorization;
+using SakuraIsayeki.Screener.Services;
 using YumeChan.PluginBase;
 using YumeChan.PluginBase.Tools.Data;
 
@@ -43,7 +44,10 @@ public class DependencyInjectionAddons : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
-		services.AddTransient(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
+		services.AddSingleton(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
+		
+		services.AddSingleton<GuildConfigService>();
+		services.AddSingleton<ScreeningService>();
 		
 		services.AddAuthorizationCore(options =>
 		{

@@ -66,6 +66,7 @@
 
                         	<div class="my-3">
 	                            <label class="form-label">Member-specific Roles</label>
+	                            
 	                            <select multiple @bind="@_config.MemberRoleIds" class="form-select" size="@(_guild!.Roles.Count > 10 ? 10 : _guild.Roles.Count)">
 		                            @foreach (DiscordRole role in _guild!.Roles.Values.OrderBy(x => x.Position))
 		                            {
