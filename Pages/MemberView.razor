@@ -1,0 +1,202 @@
+﻿@page "/{GuildIdStr}/member/{MemberIdStr}"
+@layout PanelLayout
+
+@using SakuraIsayeki.Screener.Infrastructure.Security.Authorization
+@using Microsoft.AspNetCore.Components
+@using System.ComponentModel.DataAnnotations
+
+@inject DiscordClient BotClient
+@inject ScreeningService ScreeningService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<div class="row justify-content-around text-center mb-5">
+    <div class="col col-lg-8">
+        
+
+        <EditForm EditContext="_editContext">
+            <DataAnnotationsValidator />
+
+            <div class="d-flex flex-lg-row justify-content-between">
+	            <h3 class="my-3">Search for User :</h3>
+
+	            <p class="lead text-start m-2">
+                    <ValidationMessage For="() => Model.SearchStr" />
+                </p>
+            </div>
+            
+            <div class="input-group input-group-lg mb-3">
+	            <InputText @bind-Value=Model.SearchStr class="form-control" placeholder="User Snowflake" />
+	            <a href=@($"{GuildIdStr}/member/{Model.SearchStr}") class="btn btn-primary px-3" disabled="@(!_searchIsValid)">Search</a>
+            </div>
+        </EditForm>
+    </div>
+
+    <div class="col col-lg-auto">
+        <ErrorBoundary>
+            <LastEnteredUsers />
+        </ErrorBoundary>
+    </div>
+</div>
+
+
+@if (HighestUser is not null)
+{
+	<div class="d-flex flex-lg-row mx-xl-5">
+		<div class="mx-lg-5">
+			<img class="img-fluid rounded-circle" alt="User avatar" src="@HighestUser.GetAvatarLink(256)" style="max-height: 25rem;" />
+		</div>
+        			
+		<div class="flex-grow-1">
+			<div class="mb-5" style="white-space: nowrap;">
+				<h2>@HighestUser.Username<span class="ms-3 small text-muted">#@HighestUser.Discriminator</span></h2>
+        		
+				@if (HighestUser.IsBot)
+				{
+					<span class="badge bg-secondary">BOT</span>
+				}
+			</div>
+        			
+        	
+        	
+			<table class="table table-borderless">
+				<tbody>
+					<tr><th>Snowflake</th><td class="font-monospace">@HighestUser.Id</td></tr>
+					<tr><th>Created account on</th><td>@HighestUser.CreationTimestamp.ToUniversalTime().ToString("f")</td></tr>
+        			
+					<AuthorizeView Policy="@AuthorizationExtensions.RequireScreenerPermission" Resource="@(_guild?.Id ?? 0)">
+						<Authorized>
+							@if (_member is not null)
+							{
+								<tr>
+									<th>Joined server on</th>
+									<td>@_member.JoinedAt.ToUniversalTime().ToString("f")</td>
+								</tr>
+
+								<tr>
+									<th>Roles</th>
+
+									<td>
+										@if (_member.Roles.Any())
+										{
+											<ul>
+												@foreach (DiscordRole? role in _member.Roles)
+												{
+													<li style="color: @(role.Color.ToString() is "#000000" ? "#FFFFFF" : role.Color.ToString())">@role.Name</li>
+												}
+											</ul>
+										}
+										else
+										{
+											<i class="text-muted">No roles</i>
+										}
+									</td>
+								</tr>
+							}
+							else
+							{
+								<h5 class="text-warning">User is not present on the server.</h5>
+							}
+						</Authorized>
+					</AuthorizeView>
+				</tbody>
+			</table>
+		</div>
+
+		<AuthorizeView Policy="@AuthorizationExtensions.RequireScreenerPermission" Resource="@(_guild?.Id ?? 0)">
+			<div>
+				<h1 class="mb-3">Screening</h1>
+
+				<div class="d-flex flex-row gap-3">
+					<button class="btn btn-success px-5" @onclick="AcceptUserAsync">Accept</button>
+					<button class="btn btn-danger px-5">Reject</button>
+				</div>
+			</div>
+		</AuthorizeView>
+	</div>
+	
+}
+else if (_guild is null)
+{
+	<h3 class="text-warning">No guild found with ID <span class="font-monospace">@(GuildIdStr)</span>.</h3>
+}
+else
+{
+	<h3 class="text-warning">No user found.</h3>
+}
+
+
+
+@code {
+	[Parameter] public string GuildIdStr { get; set; } = null!;
+	[Parameter] public string MemberIdStr { get; set; } = null!;
+	[CascadingParameter(Name = "GuildId"), SupplyParameterFromQuery] public ulong GuildId { get; set; }
+
+	private EditContext _editContext = null!;
+	protected SearchModel Model { get; set; } = new();
+	bool _searchIsValid = false;
+
+	DiscordGuild? _guild = null;
+	
+	private DiscordUser? HighestUser => _member ?? _user;
+	DiscordUser? _user = null;
+	DiscordMember? _member = null, _currentMember = null;
+	bool _memberWasScreened = false;
+
+	protected override Task OnInitializedAsync()
+	{
+		_editContext = new(Model);
+		_editContext.OnFieldChanged += OnSearchFieldChanged;
+		return base.OnInitializedAsync();
+	}
+
+
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		// Resolve guild from provided ID
+		if ((GuildId is var guildId and not 0 || ulong.TryParse(GuildIdStr, out guildId)) && BotClient.Guilds.TryGetValue(guildId, out _guild))
+		{
+			// Resolve user from provided ID
+			if (ulong.TryParse(MemberIdStr, out ulong userId) && await BotClient.GetUserAsync(userId) is { } discordUser)
+			{
+				_user = discordUser;
+				
+				// Resolve member from provided ID
+				if (_guild.Members.TryGetValue(discordUser.Id, out _member))
+				{
+					_memberWasScreened = await ScreeningService.UserWasScreenedAsync(_member);
+					
+					//Resolve current member
+					if (await AuthenticationStateProvider.GetUserSnowflakeAsync() is { } currentUserId && _guild.Members.TryGetValue(currentUserId, out _currentMember))
+					{
+						
+					}
+				}
+			}
+		}
+	}
+	
+	private async Task NavigateToUserAsync()
+	{
+		NavigationManager.NavigateTo($"{GuildId}/member/{Model.SearchStr}");
+	}
+
+	private async Task AcceptUserAsync() => await ScreeningService.AcceptMemberAsync(_member!, _currentMember!);
+	
+	private void OnSearchFieldChanged(object? sender, FieldChangedEventArgs _)
+	{
+		if (sender is EditContext ctx)
+		{
+			_searchIsValid = ctx.Validate();
+		}
+	}
+	
+	public record SearchModel
+	{
+		[Required, RegularExpression("^(\\d{17,21})$", ErrorMessage = "Invalid Snowflake.")]
+		public string SearchStr { get; set; }
+	}
+}

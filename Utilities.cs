@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using System.Security.Claims;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -31,4 +32,6 @@ public static class Utilities
 		from channel in guild.Channels.Values
 		group channel by channel.Parent into category
 		select category;
+	
+	public static string? GetAvatarLink(this DiscordUser user, ushort size) => user.GetAvatarUrl(ImageFormat.Auto, size);
 }

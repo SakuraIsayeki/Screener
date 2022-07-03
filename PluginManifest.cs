@@ -51,9 +51,7 @@ public class DependencyInjectionAddons : DependencyInjectionHandler
 		
 		services.AddAuthorizationCore(options =>
 		{
-			options.AddPolicy(AuthorizationExtensions.RequireOperatorPermission, policy => policy
-				.RequireGuildRole(Permissions.ManageGuild | Permissions.ManageRoles));
-			
+			options.AddPolicy(AuthorizationExtensions.RequireOperatorPermission, policy => policy.RequireGuildRole(Permissions.ManageGuild | Permissions.ManageRoles));
 			options.AddPolicy(AuthorizationExtensions.RequireScreenerPermission, policy => policy.RequireGuildRole(Permissions.KickMembers));
 			options.AddPolicy(AuthorizationExtensions.RequireAdminPermission, policy => policy.RequireGuildRole(Permissions.Administrator));
 		});

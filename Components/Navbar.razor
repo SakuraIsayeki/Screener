@@ -44,7 +44,7 @@
 		@if (SelectedGuildId is not 0)
 		{
 			<div class="nav-item px-3">
-				<NavLink class="nav-link" href=@($"screening/{SelectedGuildId.ToString()}")>
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/config/screening")>
 					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening Configuration
 				</NavLink>
 			</div>

@@ -47,8 +47,10 @@ public class ScreeningService
 		// Anything else is strange. Log the missing channel.
 		else
 		{
-			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id.ToString());
+			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id);
 		}
+
+		_logger.LogInformation("User {UserId} has been accepted in guild {GuildId} by {AcceptedById}.", member.Id, member.Guild.Id, acceptedBy.Id);
 	}
 
 	/// <summary>
@@ -70,7 +72,7 @@ public class ScreeningService
 		// Or log a missing channel
 		else
 		{
-			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id.ToString());
+			_logger.LogWarning("Screening logs channel not found for guild {GuildId}", member.Guild.Id);
 		}
 
 		// Act upon actions requested
@@ -95,6 +97,8 @@ public class ScreeningService
 			// Remove guest roles from the user
 			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(member.Guild.GetRole(role))));
 		}
+		
+		_logger.LogInformation("User {UserId} has been rejected in guild {GuildId} by {OperatorId} . (Actions: {Actions:F})", member.Id, member.Guild.Id, rejectedBy.Id, actions);
 	}
 	
 	/// <summary>
