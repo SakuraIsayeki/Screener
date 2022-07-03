@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics.Contracts;
+using System.Security.Claims;
 using DSharpPlus.Entities;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -25,6 +26,7 @@ public static class Utilities
 	///	This method is used to structure a channel list for channel selectors.
 	/// </remarks>
 	/// <returns></returns>
+	[Pure]
 	public static IEnumerable<IGrouping<DiscordChannel?, DiscordChannel>> GetChannelsByCategory(this DiscordGuild guild) =>
 		from channel in guild.Channels.Values
 		group channel by channel.Parent into category

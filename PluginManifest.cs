@@ -54,11 +54,8 @@ public class DependencyInjectionAddons : DependencyInjectionHandler
 			options.AddPolicy(AuthorizationExtensions.RequireOperatorPermission, policy => policy
 				.RequireGuildRole(Permissions.ManageGuild | Permissions.ManageRoles));
 			
-			options.AddPolicy(AuthorizationExtensions.RequireScreenerPermission, policy => policy
-				.RequireGuildRole(Permissions.KickMembers));
-			
-			options.AddPolicy(AuthorizationExtensions.RequireAdminPermission, policy => policy
-				.RequireGuildRole(Permissions.Administrator));
+			options.AddPolicy(AuthorizationExtensions.RequireScreenerPermission, policy => policy.RequireGuildRole(Permissions.KickMembers));
+			options.AddPolicy(AuthorizationExtensions.RequireAdminPermission, policy => policy.RequireGuildRole(Permissions.Administrator));
 		});
 		
 		services.AddScoped<IAuthorizationHandler, GuildAccessAuthorizationHandler>();
