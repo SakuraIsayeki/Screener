@@ -3,8 +3,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using DSharpPlus.SlashCommands.Attributes;
-using Microsoft.Extensions.DependencyInjection;
 using SakuraIsayeki.Screener.Data;
 using SakuraIsayeki.Screener.Infrastructure.Preconditions;
 using SakuraIsayeki.Screener.Services;

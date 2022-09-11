@@ -112,6 +112,6 @@ public class ScreeningService
 		GuildScreeningConfig screeningConfig = await _configService.GetGuildScreeningConfigAsync(member.Guild.Id);
 
 		// Check if the user has all the member roles
-		return member.Roles.Select(r => r.Id).All(screeningConfig.MemberRoleIds.Contains);
+		return screeningConfig.MemberRoleIds.All(member.Roles.Select(static r => r.Id).Contains);
 	}
 }

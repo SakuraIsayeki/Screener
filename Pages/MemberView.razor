@@ -1,4 +1,5 @@
-﻿@page "/{GuildIdStr}/member/{MemberIdStr}"
+﻿@page "/{GuildIdStr}/member"
+@page "/{GuildIdStr}/member/{MemberIdStr}"
 @layout PanelLayout
 
 @using SakuraIsayeki.Screener.Infrastructure.Security.Authorization
@@ -12,42 +13,39 @@
 
 <div class="row justify-content-around text-center mb-5">
     <div class="col col-lg-8">
-        
+	    <EditForm EditContext="_editContext">
+		    <DataAnnotationsValidator />
 
-        <EditForm EditContext="_editContext">
-            <DataAnnotationsValidator />
+		    <div class="d-flex flex-lg-row justify-content-between">
+			    <h3 class="my-3">Search for User :</h3>
 
-            <div class="d-flex flex-lg-row justify-content-between">
-	            <h3 class="my-3">Search for User :</h3>
-
-	            <p class="lead text-start m-2">
-                    <ValidationMessage For="() => Model.SearchStr" />
-                </p>
-            </div>
+			    <p class="lead text-start m-2">
+				    <ValidationMessage For="() => Model.SearchStr" />
+			    </p>
+		    </div>
             
-            <div class="input-group input-group-lg mb-3">
-	            <InputText @bind-Value=Model.SearchStr class="form-control" placeholder="User Snowflake" />
-	            <a href=@($"{GuildIdStr}/member/{Model.SearchStr}") class="btn btn-primary px-3" disabled="@(!_searchIsValid)">Search</a>
-            </div>
-        </EditForm>
+		    <div class="input-group input-group-lg mb-3">
+			    <InputText @bind-Value=Model.SearchStr class="form-control" placeholder="User Snowflake" />
+			    <a href=@($"{GuildIdStr}/member/{Model.SearchStr}") class="btn btn-primary px-3" disabled="@(!_searchIsValid)">Search</a>
+		    </div>
+	    </EditForm>
+	    
+	    <hr class="mt-5" />
     </div>
 
     <div class="col col-lg-auto">
-        <ErrorBoundary>
-            <LastEnteredUsers />
-        </ErrorBoundary>
+		<!-- Reserved for future use -->
     </div>
 </div>
 
-
 @if (HighestUser is not null)
 {
-	<div class="d-flex flex-lg-row mx-xl-5">
-		<div class="mx-lg-5">
+	<div class="row flex-lg-row mx-xl-5">
+		<div class="col-lg-auto mx-lg-5">
 			<img class="img-fluid rounded-circle" alt="User avatar" src="@HighestUser.GetAvatarLink(256)" style="max-height: 25rem;" />
 		</div>
         			
-		<div class="flex-grow-1">
+		<div class="col-lg-6">
 			<div class="mb-5" style="white-space: nowrap;">
 				<h2>@HighestUser.Username<span class="ms-3 small text-muted">#@HighestUser.Discriminator</span></h2>
         		
@@ -95,7 +93,7 @@
 							}
 							else
 							{
-								<h5 class="text-warning">User is not present on the server.</h5>
+								<h5 class="text-warning my-3">User is not present on the server.</h5>
 							}
 						</Authorized>
 					</AuthorizeView>
@@ -103,16 +101,30 @@
 			</table>
 		</div>
 
-		<AuthorizeView Policy="@AuthorizationExtensions.RequireScreenerPermission" Resource="@(_guild?.Id ?? 0)">
-			<div>
-				<h1 class="mb-3">Screening</h1>
+		@if (_member is not null)
+		{
+			<AuthorizeView Policy="@AuthorizationExtensions.RequireScreenerPermission" Resource="@(_guild?.Id ?? 0)">
+				<div class="col-lg">
+					<h1 class="mb-3">Screening</h1>
 
-				<div class="d-flex flex-row gap-3">
-					<button class="btn btn-success px-5" @onclick="AcceptUserAsync">Accept</button>
-					<button class="btn btn-danger px-5">Reject</button>
+					@if (HighestUser!.IsBot)
+					{
+						<h5 class="text-warning">Bots cannot be screened.</h5>
+					}
+					else if (!_memberWasScreened)
+					{
+						<div class="d-flex flex-row gap-3">
+							<button class="btn btn-success px-5" @onclick="AcceptUserAsync">Accept</button>
+							<button class="btn btn-danger px-5">Reject</button>
+						</div>
+					}
+					else
+					{
+						<h5 class="text-info">Member was already screened.</h5>
+					}
 				</div>
-			</div>
-		</AuthorizeView>
+			</AuthorizeView>
+		}
 	</div>
 	
 }
@@ -149,8 +161,6 @@ else
 		_editContext.OnFieldChanged += OnSearchFieldChanged;
 		return base.OnInitializedAsync();
 	}
-
-
 
 	protected override async Task OnParametersSetAsync()
 	{

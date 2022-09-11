@@ -44,6 +44,16 @@
 		@if (SelectedGuildId is not 0)
 		{
 			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/member")>
+					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening
+				</NavLink>
+			</div>
+			
+			<div class="lead mt-3 mb-1 px-3">
+				Configuration
+			</div>
+			
+			<div class="nav-item px-3">
 				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/config/screening")>
 					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening Configuration
 				</NavLink>
@@ -74,7 +84,7 @@
 	/// </summary>
 	[Parameter] public EventCallback<ulong> OnSelectedGuildIdChanged { get; set; }
 	
-	IReadOnlyList<DiscordGuild> _userManagedGuilds = new List<DiscordGuild>();
+	ImmutableArray<DiscordGuild> _userManagedGuilds = Array.Empty<DiscordGuild>().ToImmutableArray();
 	
 	protected override async Task OnInitializedAsync()
 	{
@@ -85,7 +95,7 @@
 			_userManagedGuilds = (from g in Client.Guilds
 			                      let m = g.Value.Members.GetValueOrDefault(userId)
 			                      where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
-			                      select g.Value).ToImmutableList();
+			                      select g.Value).ToImmutableArray();
 		}
 	}
 }
