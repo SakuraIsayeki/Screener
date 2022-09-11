@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
     <PackageReference Include="MongoDB.Analyzer" Version="1.0.0" />
+    <PackageReference Include="TextPress" Version="1.0.0" />
 
     <!-- Required dependency on YC PluginBase -->
     <PackageReference Include="YumeChan.PluginBase" Version="3.0.0" />

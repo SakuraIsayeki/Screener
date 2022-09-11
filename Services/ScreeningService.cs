@@ -11,11 +11,13 @@ namespace SakuraIsayeki.Screener.Services;
 public class ScreeningService
 {
 	private readonly GuildConfigService _configService;
+	private readonly GreetingService _greetingService;
 	private readonly ILogger<ScreeningService> _logger;
 
-	public ScreeningService(GuildConfigService configService, ILogger<ScreeningService> logger)
+	public ScreeningService(GuildConfigService configService, GreetingService greetingService, ILogger<ScreeningService> logger)
 	{
 		_configService = configService;
+		_greetingService = greetingService;
 		_logger = logger;
 	}
 
@@ -35,10 +37,7 @@ public class ScreeningService
 		// Remove the guest roles from the member
 		// Same spiel as above
 		await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(member.Guild.GetRole(role))));
-
-		// Send a message to the user
-		// TODO: Make this a configurable message
-
+		
 		// Report to the Screening logs channel that the user has been accepted
 		if (member.Guild.Channels.TryGetValue(screeningConfig.ScreeningLogsChannelId, out DiscordChannel? channel) && channel is { Type: ChannelType.Text })
 		{
@@ -51,6 +50,12 @@ public class ScreeningService
 		}
 
 		_logger.LogInformation("User {UserId} has been accepted in guild {GuildId} by {AcceptedById}.", member.Id, member.Guild.Id, acceptedBy.Id);
+		
+		// Send greeting messages
+		await Task.WhenAll(
+			_greetingService.GreetUserDmAsync(member),
+			_greetingService.GreetUserGuildAsync(member)
+		);
 	}
 
 	/// <summary>
@@ -79,7 +84,7 @@ public class ScreeningService
 		if ((actions & ScreeningRejectActions.InformUser) is not 0)
 		{
 			// Send a message to the user
-			// TODO: message
+			await _greetingService.RejectUserDmAsync(member, reason);
 		}
 
 		if ((actions & ScreeningRejectActions.Ban) is not 0)
@@ -95,17 +100,17 @@ public class ScreeningService
 		else if ((actions & ScreeningRejectActions.RemoveGuestRoles) is not 0)
 		{
 			// Remove guest roles from the user
-			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(role => member.RevokeRoleAsync(member.Guild.GetRole(role))));
+			await Task.WhenAll(screeningConfig.GuestRoleIds.Select(member.Guild.GetRole).Select(role => member.RevokeRoleAsync(role, $"Rejected screening: {reason}")));
 		}
 		
-		_logger.LogInformation("User {UserId} has been rejected in guild {GuildId} by {OperatorId} . (Actions: {Actions:F})", member.Id, member.Guild.Id, rejectedBy.Id, actions);
+		_logger.LogInformation("User {UserId} has been rejected in guild {GuildId} by {OperatorId}. (Actions: {Actions:F})", member.Id, member.Guild.Id, rejectedBy.Id, actions);
 	}
 	
 	/// <summary>
 	/// Checks a user's roles against the guild's screening config, making sure that they possess all member roles.
 	/// </summary>
 	/// <param name="member">Server member to check against screening</param>
-	/// <returns>true for a member ; false for a guest</returns>
+	/// <returns><see langword="true"/> for a member, <see langword="false"/> for a guest.</returns>
 	public async Task<bool> UserWasScreenedAsync(DiscordMember member)
 	{
 		// Get the screening config

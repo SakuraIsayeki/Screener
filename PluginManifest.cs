@@ -1,9 +1,11 @@
 ﻿using DSharpPlus;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SakuraIsayeki.Screener.Data;
 using SakuraIsayeki.Screener.Infrastructure.Security.Authorization;
 using SakuraIsayeki.Screener.Services;
+using TextPress;
 using YumeChan.PluginBase;
 using YumeChan.PluginBase.Tools.Data;
 
@@ -45,6 +47,7 @@ public class DependencyInjectionAddons : DependencyInjectionHandler
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
 		services.AddSingleton(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
+		services.TryAddSingleton<StringTemplateFactory>();
 		
 		services.AddSingleton<GuildConfigService>();
 		services.AddSingleton<ScreeningService>();

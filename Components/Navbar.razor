@@ -92,10 +92,11 @@
 
 		if (await AuthStateProvider.GetUserSnowflakeAsync() is { } userId)
 		{
-			_userManagedGuilds = (from g in Client.Guilds
-			                      let m = g.Value.Members.GetValueOrDefault(userId)
-			                      where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
-			                      select g.Value).ToImmutableArray();
+			_userManagedGuilds = 
+				(from g in Client.Guilds
+			    let m = g.Value.Members.GetValueOrDefault(userId)
+			    where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
+			    select g.Value).ToImmutableArray();
 		}
 	}
 }

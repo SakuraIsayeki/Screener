@@ -29,4 +29,24 @@ public record GuildScreeningConfig
 	/// IDs of roles belonging to members.
 	/// </summary>
 	public ulong[] MemberRoleIds { get; set; } = Array.Empty<ulong>();
+	
+	/// <summary>
+	/// Greeting message template to be sent to new members, via Direct Message.
+	/// </summary>
+	public MessageTemplate? GreetingDmMessage { get; set; }
+	
+	/// <summary>
+	/// Greeting message template to be sent to new members, via guild channel.
+	/// </summary>
+	public MessageTemplate? GreetingChannelMessage { get; set; }
+	
+	/// <summary>
+	/// Channel ID of the channel to which the greeting message should be sent.
+	/// </summary>
+	public ulong GreetingChannelId { get; set; }
+	
+	/// <summary>
+	/// Message to send to the user if rejected from screening.
+	/// </summary>
+	public MessageTemplate? ScreeningRejectedMessage { get; set; }
 }
