@@ -2,9 +2,7 @@
 @page "/{GuildIdStr}/member/{MemberIdStr}"
 @layout PanelLayout
 
-@using SakuraIsayeki.Screener.Infrastructure.Security.Authorization
 @using Microsoft.AspNetCore.Components
-@using System.ComponentModel.DataAnnotations
 
 @inject DiscordClient BotClient
 @inject ScreeningService ScreeningService
@@ -162,7 +160,7 @@ else
 		return base.OnInitializedAsync();
 	}
 
-	protected override async Task OnParametersSetAsync()
+	protected sealed override async Task OnParametersSetAsync()
 	{
 		await base.OnParametersSetAsync();
 
@@ -203,8 +201,8 @@ else
 			_searchIsValid = ctx.Validate();
 		}
 	}
-	
-	public record SearchModel
+
+	protected sealed record SearchModel
 	{
 		[Required, RegularExpression("^(\\d{17,21})$", ErrorMessage = "Invalid Snowflake.")]
 		public string SearchStr { get; set; }

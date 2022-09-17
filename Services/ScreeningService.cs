@@ -8,7 +8,7 @@ namespace SakuraIsayeki.Screener.Services;
 /// <summary>
 /// Provides mechanisms to screen guild members (Accept/Reject users).
 /// </summary>
-public class ScreeningService
+public sealed class ScreeningService
 {
 	private readonly GuildConfigService _configService;
 	private readonly GreetingService _greetingService;

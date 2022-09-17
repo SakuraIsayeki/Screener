@@ -1,9 +1,6 @@
 ﻿@page "/{GuildIdStr}/config/screening"
 @layout PanelLayout
 
-@using SakuraIsayeki.Screener.Data
-@using SakuraIsayeki.Screener.Infrastructure.Security.Authorization
-
 @inject DiscordClient BotClient
 @inject GuildConfigService ConfigService
 
@@ -23,7 +20,7 @@
 			{
 				<div class="alert alert-success my-3">
 					<p class="my-0">
-						<i class="bi-check-circle me-3"></i>Changes to Guild screeningConfiguration were saved!
+						<i class="bi-check-circle me-3"></i>Changes to Guild Screening Configuration were saved!
 					</p>
 				</div>
 			}

@@ -1,4 +1,5 @@
 ﻿using DSharpPlus;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -14,7 +15,8 @@ namespace SakuraIsayeki.Screener;
 /// <summary>
 /// Defines the Plugin Manifest for the Screener Plugin.
 /// </summary>
-public class PluginManifest : Plugin // This Class MUST be set as public to get picked up by the Plugin Loader.
+[UsedImplicitly]
+public sealed class PluginManifest : Plugin // This Class MUST be set as public to get picked up by the Plugin Loader.
 {
 	// This defines your Plugin's Display name.
 	public override string DisplayName => "Screener";
@@ -42,7 +44,8 @@ public class PluginManifest : Plugin // This Class MUST be set as public to get 
 /// <summary>
 /// Defines additions to the DI Container.
 /// </summary>
-public class DependencyInjectionAddons : DependencyInjectionHandler
+[UsedImplicitly]
+public sealed class DependencyInjectionAddons : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{

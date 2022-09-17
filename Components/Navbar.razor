@@ -58,6 +58,12 @@
 					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening Configuration
 				</NavLink>
 			</div>
+			
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/config/greeting")>
+					<i aria-hidden="true" class="bi bi-chat-quote-fill me-3"></i>Greeting Configuration
+				</NavLink>
+			</div>
 		}
 	</nav>
 </div>
@@ -86,7 +92,7 @@
 	
 	ImmutableArray<DiscordGuild> _userManagedGuilds = Array.Empty<DiscordGuild>().ToImmutableArray();
 	
-	protected override async Task OnInitializedAsync()
+	protected sealed override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
 

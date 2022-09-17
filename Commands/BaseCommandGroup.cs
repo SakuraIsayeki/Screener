@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using JetBrains.Annotations;
 using SakuraIsayeki.Screener.Data;
 using SakuraIsayeki.Screener.Infrastructure.Preconditions;
 using SakuraIsayeki.Screener.Services;
@@ -14,7 +15,7 @@ namespace SakuraIsayeki.Screener.Commands;
 /// Base group for all Screener slash commands.
 /// </summary>
 [Group("screener"), Description("Base prefix for all Screener commands."), RequireGuild]
-public partial class BaseCommandGroup : ApplicationCommandModule
+public partial class BaseCommandGroup : BaseCommandModule
 {
 	private readonly ScreeningService _screeningService;
 
@@ -23,7 +24,7 @@ public partial class BaseCommandGroup : ApplicationCommandModule
 		_screeningService = screeningService;
 	}
 
-	[Command("accept"), Description("Accepts a user through screening, granting them member roles."), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers)]
+	[Command("accept"), Description("Accepts a user through screening, granting them member roles."), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers), UsedImplicitly]
 	public async Task AcceptAsync(CommandContext ctx, [Description("User to accept screening for")] DiscordMember member)
 	{
 		// Check if the user is already a member.
@@ -37,7 +38,7 @@ public partial class BaseCommandGroup : ApplicationCommandModule
 		await _screeningService.AcceptMemberAsync(member, ctx.Member!);
 	}
 
-	[Command("reject"), Description("Rejects a user from screening"), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers)]
+	[Command("reject"), Description("Rejects a user from screening"), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers), UsedImplicitly]
 	public async Task RejectAsync(CommandContext ctx, [Description("User to reject from screening")] DiscordMember member, [RemainingText] string? reason = null)
 	{
 		// Check if the user is already a member.

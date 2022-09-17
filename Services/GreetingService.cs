@@ -60,6 +60,13 @@ public class GreetingService
 		// Get the guild configuration
 		GuildScreeningConfig config = await _configService.GetGuildScreeningConfigAsync(member.Guild.Id);
 		
+		// Return if there's no greeting channel
+		if (config.GreetingChannelId is 0)
+		{
+			_logger.LogDebug("Greeting channel is null, not sending greeting message.");
+			return;
+		}
+		
 		// If the greeting message template is not null, build a greeting message and send it to the user
 		if (config.GreetingChannelMessage is not { } template)
 		{
@@ -72,7 +79,7 @@ public class GreetingService
 		_logger.LogDebug("Sending greeting message to guild {Guild}.", member.Guild.Id);
 		_logger.LogTrace("Message: {Message}", message);
 		
-		await member.Guild.GetDefaultChannel().SendMessageAsync(message, embed: embed);
+		await member.Guild.GetChannel(config.GreetingChannelId).SendMessageAsync(message, embed: embed);
 	}
 	
 	/// <summary>
@@ -93,11 +100,11 @@ public class GreetingService
 		}
 
 		// Build and send the rejection message/embed
-		(string? message, DiscordEmbed? embed) = BuildMessageComponents(template, member, new Dictionary<string, string> { { "reason", reason } });
+		(string? message, DiscordEmbed? embed) = BuildMessageComponents(template, member, new Dictionary<string, string> { { "reason", reason ?? "N/A" } });
 		_logger.LogDebug("Sending rejection message to user {User} in guild {Guild}.", member.Id, member.Guild.Id);
 		_logger.LogTrace("Message: {Message}", message);
 		
-		await member.SendMessageAsync(message, embed: embed);
+		await (await member.CreateDmChannelAsync()).SendMessageAsync(message, embed: embed);
 	}
 
 	/// <summary>
@@ -117,7 +124,7 @@ public class GreetingService
 		{
 			{ "userId", member.Id.ToString() },
 			{ "userMention", member.Mention },
-			{ "userName", member.Nickname }
+			{ "username", member.Nickname }
 		};
 
 		string? message = null;
@@ -137,7 +144,9 @@ public class GreetingService
 
 				Thumbnail = new()
 				{
-					Url = template.EmbedImageUri ?? member.AvatarUrl
+					Url = template.EmbedImageUri ?? member.AvatarUrl,
+					Height = 512,
+					Width = 512
 				},
 
 				Author = new()

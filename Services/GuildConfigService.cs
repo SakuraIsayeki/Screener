@@ -6,7 +6,7 @@ namespace SakuraIsayeki.Screener.Services;
 /// <summary>
 /// Defines a provider for <see cref="GuildScreeningConfig"/> objects.
 /// </summary>
-public class GuildConfigService
+public sealed class GuildConfigService
 {
 	private readonly IMongoCollection<GuildScreeningConfig> _configs;
 

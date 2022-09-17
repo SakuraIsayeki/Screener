@@ -2,7 +2,7 @@
  @* ReSharper disable file InconsistentNaming *@
  
 @code {
-	public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = guild => __builder =>
+	public static RenderFragment<DiscordGuild> GuildCornerInfo { get; } = static guild => __builder =>
     {
 	    <div class="d-flex flex-row" id="guild-display">
 		    @if (@guild.GetIconUrl(ImageFormat.WebP, 64) is { } iconUrl)
@@ -22,17 +22,17 @@
 	    </div>
     };
 
-	public static RenderFragment<(ulong selected, DiscordGuild guild)> GuildTextChannelsSelectList { get; } = value => __builder =>
+	public static RenderFragment<(ulong selected, DiscordGuild guild)> GuildTextChannelsSelectList { get; } = static value => __builder =>
 	{
 		<option selected value="0">(None)</option>
 
 		@foreach (IGrouping<DiscordChannel?, DiscordChannel> category in value.guild.GetChannelsByCategory()
-			.OrderBy(c => c.Key?.Position ?? int.MinValue))
+			.OrderBy(static c => c.Key?.Position ?? int.MinValue))
 		{
 			<optgroup label=@(category.Key?.Name ?? "(Uncategorized)")>
 				@foreach (DiscordChannel channel in category
-					.Where(c => c.Type == ChannelType.Text)
-					.OrderBy(c => c.Position))
+					.Where(static c => c.Type is ChannelType.Text)
+					.OrderBy(static c => c.Position))
 				{
 					<option selected="@(channel.Id == value.selected)" value="@channel.Id.ToString()">@channel.Name</option>
 				}

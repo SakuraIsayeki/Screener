@@ -1,0 +1,92 @@
+﻿<EditForm Model="Template" Context="msgtemplateContext">
+	<div class="row" id="msgtemplate-editor">
+		<h4>Message Template: @TemplateDisplayName</h4>
+		
+		<div class="col-xl-8">
+			<!-- Message Template -->
+			<div class="my-3">
+				<h5>Message</h5>
+
+				<div class="form-group">
+					<InputTextArea id="message" class="form-control" @bind-Value="Template.Message" />
+				</div>
+			</div>
+
+			<hr class="my-3" />
+			
+			<!-- Embed Template -->
+			<div class="my-3">
+				<div class="d-flex flex-row justify-content-between">
+					<div><h5>Embed</h5></div>
+					
+					<div>
+                    	<label class="form-check-label mx-2">Enable Embed</label>
+                    	<InputCheckbox @bind-Value="Template.HasEmbed" class="form-check-input" />
+                    </div>
+				</div>
+
+				<div class="form-group my-1">
+					<label for="embed-title">Title</label>
+					<InputText id="embed-title" class="form-control" @bind-Value="Template.EmbedTitle" disabled="@(!Template.HasEmbed)" />
+				</div>
+
+				<div class="form-group my-1">
+					<label for="embed-description">Body</label>
+					<InputTextArea id="embed-description" class="form-control" @bind-Value="Template.EmbedBody" disabled="@(!Template.HasEmbed)" />
+				</div>
+			</div>
+		</div>
+		
+		<div class="col-4">
+			<h4>Context Tokens</h4>
+			
+			<p>
+				<b>Context tokens are used to insert dynamic data into the message template.</b><br />
+				For example, <code>{username}</code> will be replaced with the username of the user being greeted/screened.
+			</p>
+			
+			<p class="lead">
+				Here are the available tokens:
+			</p>
+			
+			<dl class="my-3">
+				<dt><code>{username}</code></dt>
+				<dd>The username of the user being greeted/screened.</dd>
+				
+				<dt><code>{userMention}</code></dt>
+				<dd>A mention of the user being greeted/screened.</dd>
+				
+				<dt><code>{userId}</code></dt>
+				<dd>The ID/Snowflake of the user being greeted/screened.</dd>
+				
+				@if (ContextTokens is { Count: not 0 })
+				{
+					foreach (KeyValuePair<string, string> token in ContextTokens)
+					{
+						<dt><code>{@token.Key}</code></dt>
+						<dd>@token.Value</dd>
+					}
+				}
+			</dl>
+		</div>
+	</div>
+</EditForm>
+
+
+@code {
+	/// <summary>
+	/// The message template to edit.
+	/// </summary>
+	[Parameter, EditorRequired] public MessageTemplate Template { get; set; }
+	
+	/// <summary>
+	/// The display name of that message template.
+	/// This is used to display the name of the template in the editor.
+	/// </summary>
+	[Parameter, EditorRequired] public string TemplateDisplayName { get; set; }
+	
+	/// <summary>
+	/// A Key/Value pair of all available context tokens for the message templates.
+	/// </summary>
+	[Parameter] public IReadOnlyDictionary<string, string> ContextTokens { get; set; }
+}
