@@ -3,7 +3,7 @@ name: .NET Build & Test
 on:
   - push
   - pull_request
-
+  - workflow_call
 
 env:
   YumeChan_PluginsLocation: build
@@ -15,11 +15,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+
+    - uses: dotnet/nbgv@main
+      id: nbgv
 
     - name: Restore dependencies
       run: dotnet restore
@@ -29,3 +34,12 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
+
+    - name: .NET Build & Pack
+      run: dotnet build -c release -o "publish"
+        
+    - name: Upload dotnet build
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet-build-release
+        path: "build"
