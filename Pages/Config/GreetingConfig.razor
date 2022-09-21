@@ -1,0 +1,137 @@
+﻿@page "/{GuildIdStr}/config/greeting"
+@layout PanelLayout
+
+@inject DiscordClient BotClient
+@inject GuildConfigService ConfigService
+
+@if (_config is not null)
+{
+	<AuthorizeView Policy="@AuthorizationExtensions.RequireOperatorPermission" Resource="@(_guild?.Id ?? 0)" Context="authContext">
+		<Authorized>
+			<div class="d-flex flex-md-row justify-content-between m-3 mb-5">
+				<div><h1><i class="bi-chat-quote-fill me-3"></i>Greeting Configuration</h1></div>
+				@RazorUtilities.GuildCornerInfo(_guild!)
+			</div>
+
+
+			<hr class="my-5" />
+
+			@if (_displaySaveAlert)
+			{
+				<div class="alert alert-success my-3">
+					<p class="my-0">
+						<i class="bi-check-circle me-3"></i>Changes to Guild Greeting Configuration were saved!
+					</p>
+				</div>
+			}
+
+			@if (_config is not null)
+			{
+				<EditForm Model="_config" OnValidSubmit="OnValidSubmitAsync" Context="configContext">
+					<div class="row gap-xl-3 my-5" id="config">
+						<div class="col-xl-3" id="greeting-channel">
+							<h3><i class="bi-megaphone-fill me-3"></i>Channel</h3>
+    
+							<div class="my-3">
+								<label class="form-label">Greeting channel</label>
+    
+								<select @bind="@_config.GreetingChannelId" class="form-select">
+									@RazorUtilities.GuildTextChannelsSelectList((_config.GreetingChannelId, _guild!))
+								</select>
+							</div>
+							
+							<div class="my-5 d-none d-xl-block">
+								<button class="btn btn-success px-5" type="submit">Save</button>
+							</div>
+						</div>
+						
+						<div class="col">
+							<h3><i class="bi-pencil-square me-3"></i>Template Editor</h3>
+
+							<div class="my-3">
+								<label class="form-label">Message Templates</label>
+								
+								<select @bind="_templateSelection" class="form-select">
+									<option value="0">(Select a Template to edit)</option>
+									<option value="1">Greeting Welcome Channel</option>
+									<option value="2">Greeting Welcome DM</option>
+									<option value="3">Screening Rejection DM</option>
+								</select>
+							</div>
+							
+							@if (_templateSelection is 1)
+							{
+								_config.GreetingChannelMessage ??= new();
+								<MessageTemplateConfig Template="_config.GreetingChannelMessage" TemplateDisplayName="Greeting Channel" />
+							}
+							@if (_templateSelection is 2)
+							{
+								_config.GreetingDmMessage ??= new();
+								<MessageTemplateConfig Template="_config.GreetingDmMessage" TemplateDisplayName="Greeting DM" />
+							}
+							@if (_templateSelection is 3)
+							{
+								_config.ScreeningRejectedMessage ??= new();
+								<MessageTemplateConfig 
+									Template="_config.ScreeningRejectedMessage" 
+									TemplateDisplayName="Rejection DM"
+									ContextTokens="@(new Dictionary<string, string> { { "reason", "The reason for the rejection" } })"
+								/>
+							}
+						</div>
+					</div>
+					
+					<div class="d-block d-xl-none">
+                        <button class="btn btn-success px-5" type="submit">Save</button>
+                    </div>
+				</EditForm>
+			}
+		</Authorized>
+
+		<NotAuthorized>
+			<h3 class="text-danger mx-3 my-5">
+				<i class="bi-shield-fill-x me-3"></i>
+				You are not authorized to edit settings for Guild <span class="font-monospace">@_guild!.Id.ToString()</span>.
+			</h3>
+		</NotAuthorized>
+	</AuthorizeView>
+}
+else if (_guild is not null) 
+{
+	<h3 class="text-info">Loading...</h3>
+}
+else
+{
+	<h3 class="text-warning">No Server found for ID<span class="font-monospace">@GuildId.ToString()</span>.</h3>
+}
+
+
+@code {
+	
+	[Parameter] public string GuildIdStr { get; set; }
+	[CascadingParameter(Name = "GuildId"), SupplyParameterFromQuery] public ulong GuildId { get; set; }
+
+	private bool _displaySaveAlert = false;
+
+	private DiscordGuild? _guild;
+	private GuildScreeningConfig? _config;
+	
+	private byte _templateSelection = 0;
+	
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		if ((GuildId is var guildId and not 0 || ulong.TryParse(GuildIdStr, out guildId)) && BotClient.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+		{
+			_guild = guild;
+			_config = await ConfigService.GetGuildScreeningConfigAsync(_guild.Id);
+		}
+	}
+	
+	private async Task OnValidSubmitAsync()
+	{
+		await ConfigService.SaveGuildScreeningConfigAsync(_config!);
+		_displaySaveAlert = true;
+	}
+}

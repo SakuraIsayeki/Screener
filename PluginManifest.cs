@@ -1,10 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DSharpPlus;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SakuraIsayeki.Screener.Data;
+using SakuraIsayeki.Screener.Infrastructure.Security.Authorization;
+using SakuraIsayeki.Screener.Services;
+using TextPress;
 using YumeChan.PluginBase;
+using YumeChan.PluginBase.Tools.Data;
 
 namespace SakuraIsayeki.Screener;
 
-// This Class defines the Plugin, and makes it visible to the Loader.
-public class PluginManifest : Plugin // This Class MUST be set as public to get picked up by the Plugin Loader.
+/// <summary>
+/// Defines the Plugin Manifest for the Screener Plugin.
+/// </summary>
+[UsedImplicitly]
+public sealed class PluginManifest : Plugin // This Class MUST be set as public to get picked up by the Plugin Loader.
 {
 	// This defines your Plugin's Display name.
 	public override string DisplayName => "Screener";
@@ -29,21 +41,28 @@ public class PluginManifest : Plugin // This Class MUST be set as public to get 
 	}
 }
 
-/*
- * This class allows you to register furter services to YumeChan's DI Container.
- * This is optional, and you can remove it if you don't need it.
- */
-public class DependencyInjectionAddons : DependencyInjectionHandler
+/// <summary>
+/// Defines additions to the DI Container.
+/// </summary>
+[UsedImplicitly]
+public sealed class DependencyInjectionAddons : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
-		/*
-		 * Here you can register your services to YumeChan's DI Container.
-		 * For dependencies that may be shared, and are not defined in your namespaces,
-		 * consider using the TryAdd methods, instead of Add.
-		 */
+		services.AddSingleton(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
+		services.TryAddSingleton<StringTemplateFactory>();
 		
-		// Add your services here.
+		services.AddSingleton<GuildConfigService>();
+		services.AddSingleton<ScreeningService>();
+		
+		services.AddAuthorizationCore(options =>
+		{
+			options.AddPolicy(AuthorizationExtensions.RequireOperatorPermission, policy => policy.RequireGuildRole(Permissions.ManageGuild | Permissions.ManageRoles));
+			options.AddPolicy(AuthorizationExtensions.RequireScreenerPermission, policy => policy.RequireGuildRole(Permissions.KickMembers));
+			options.AddPolicy(AuthorizationExtensions.RequireAdminPermission, policy => policy.RequireGuildRole(Permissions.Administrator));
+		});
+		
+		services.AddScoped<IAuthorizationHandler, GuildAccessAuthorizationHandler>();
 		
 		return services;
 	}

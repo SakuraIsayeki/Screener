@@ -1,0 +1,108 @@
+﻿@using DSharpPlus.Entities
+@using Microsoft.AspNetCore.Components
+@using System.Collections.Immutable
+@using DSharpPlus
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@inject DiscordClient Client;
+@inject AuthenticationStateProvider AuthStateProvider;
+@inject IJSRuntime Js;
+
+<div class="top-row ps-3 navbar navbar-dark">
+	<div class="container-fluid">
+		<div class="navbar-brand my-3">
+			<span>Screener</span>
+		</div>
+	</div>
+</div>
+
+<div>
+	<AuthorizeView>
+		<Authorized>
+			<div class="flex-column my-3">
+            	<div class="nav-item px-3 py-3">
+            		<select @bind="@SelectedGuildId" class="form-select px-3 py-2">
+            			<option value="0" selected>Select a server</option>
+        
+            			@foreach (DiscordGuild guild in _userManagedGuilds)
+            			{
+            				<option value="@guild.Id.ToString()">@guild.Name</option>
+            			}
+            		</select>
+            	</div>
+            </div>
+		</Authorized>
+	</AuthorizeView>
+
+	<nav class="flex-column my-3">
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<i aria-hidden="true" class="bi bi-house-fill me-3"></i>Home
+			</NavLink>
+		</div>
+		
+		@if (SelectedGuildId is not 0)
+		{
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/member")>
+					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening
+				</NavLink>
+			</div>
+			
+			<div class="lead mt-3 mb-1 px-3">
+				Configuration
+			</div>
+			
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/config/screening")>
+					<i aria-hidden="true" class="bi bi-person-bounding-box me-3"></i>Screening Configuration
+				</NavLink>
+			</div>
+			
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href=@($"{SelectedGuildId.ToString()}/config/greeting")>
+					<i aria-hidden="true" class="bi bi-chat-quote-fill me-3"></i>Greeting Configuration
+				</NavLink>
+			</div>
+		}
+	</nav>
+</div>
+
+
+@code {
+	/// <summary>
+	/// Guild currently selected by the user.
+	/// </summary>
+	public ulong SelectedGuildId
+	{
+		get => _selectedGuildId;
+		
+		private set
+		{
+			_selectedGuildId = value;
+			OnSelectedGuildIdChanged.InvokeAsync(value).GetAwaiter().GetResult();
+		} 
+	}
+	private ulong _selectedGuildId;
+	
+	/// <summary>
+	/// Defines a callback that is invoked when the user selects a new guild.
+	/// </summary>
+	[Parameter] public EventCallback<ulong> OnSelectedGuildIdChanged { get; set; }
+	
+	ImmutableArray<DiscordGuild> _userManagedGuilds = Array.Empty<DiscordGuild>().ToImmutableArray();
+	
+	protected sealed override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		if (await AuthStateProvider.GetUserSnowflakeAsync() is { } userId)
+		{
+			_userManagedGuilds = 
+				(from g in Client.Guilds
+			    let m = g.Value.Members.GetValueOrDefault(userId)
+			    where m is not null && ((m.Permissions & Permissions.ManageGuild) is not 0 || (m.Permissions & Permissions.Administrator) is not 0)
+			    select g.Value).ToImmutableArray();
+		}
+	}
+}

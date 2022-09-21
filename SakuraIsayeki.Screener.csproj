@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>
     
@@ -15,7 +16,7 @@
     <Description>Simple screening and greeting plugin for YumeChan</Description>
     <NeutralLanguage>en</NeutralLanguage>
     <RepositoryType>Git</RepositoryType>
-    <RepositoryUrl>https://github.com/YumeChan-DT/SamplePlugin-CS</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SakuraIsayeki/Screener</RepositoryUrl>
     <PackageTags />
     <Copyright>MIT License</Copyright>
     
@@ -36,7 +37,14 @@
   <ItemGroup>
     <!-- Additional dependencies can be added, in case you need extras on your plugin (like SlashCommands, and maybe a logger). -->
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+    <PackageReference Include="LibSassBuilder" Version="2.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+    <PackageReference Include="MongoDB.Analyzer" Version="1.0.0" />
+    <PackageReference Include="TextPress" Version="1.0.0" />
 
     <!-- Required dependency on YC PluginBase -->
     <PackageReference Include="YumeChan.PluginBase" Version="3.0.0" />
@@ -70,5 +78,9 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="*.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Components\Modals" />
   </ItemGroup>
 </Project>
