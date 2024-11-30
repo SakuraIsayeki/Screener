@@ -1,4 +1,4 @@
-using DSharpPlus;
+﻿using DSharpPlus;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +8,7 @@ using SakuraIsayeki.Screener.Infrastructure.Security.Authorization;
 using SakuraIsayeki.Screener.Services;
 using TextPress;
 using YumeChan.PluginBase;
-using YumeChan.PluginBase.Tools.Data;
+using YumeChan.PluginBase.Database.MongoDB;
 
 namespace SakuraIsayeki.Screener;
 
@@ -24,7 +24,7 @@ public sealed class PluginManifest : Plugin // This Class MUST be set as public 
 	// This flag defines whether your Plugin should be shown to the general public or not.
 	// Still shown to Server Operators, this is useful for security plugins, or plugins requiring covert operation.
 	public override bool StealthMode => false;
-
+	
 	public override async Task LoadAsync()
 	{
 		//Here goes the Loading Logic, if some loading procedure is needed. Treat it as a Ctor.
@@ -49,7 +49,7 @@ public sealed class DependencyInjectionAddons : DependencyInjectionHandler
 {
 	public override IServiceCollection ConfigureServices(IServiceCollection services)
 	{
-		services.AddSingleton(s => s.GetRequiredService<IDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
+		services.AddSingleton(s => s.GetRequiredService<IMongoDatabaseProvider<PluginManifest>>().GetMongoDatabase().GetCollection<GuildScreeningConfig>("screeningConfig"));
 		services.TryAddSingleton<StringTemplateFactory>();
 		
 		services.AddSingleton<GuildConfigService>();
