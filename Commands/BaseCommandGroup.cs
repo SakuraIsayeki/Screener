@@ -12,10 +12,10 @@ namespace SakuraIsayeki.Screener.Commands;
 
 
 /// <summary>
-/// Base group for all Screener slash commands.
+/// Base group for all Screener commands.
 /// </summary>
 [Group("screener"), Description("Base prefix for all Screener commands."), RequireGuild]
-public partial class BaseCommandGroup : BaseCommandModule
+public sealed partial class BaseCommandGroup : BaseCommandModule
 {
 	private readonly ScreeningService _screeningService;
 
@@ -24,8 +24,15 @@ public partial class BaseCommandGroup : BaseCommandModule
 		_screeningService = screeningService;
 	}
 
-	[Command("accept"), Description("Accepts a user through screening, granting them member roles."), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers), UsedImplicitly]
-	public async Task AcceptAsync(CommandContext ctx, [Description("User to accept screening for")] DiscordMember member)
+	/// <summary>
+	/// Accepts a user through the screening process.
+	/// </summary>
+	/// <param name="ctx">The context of the slash command.</param>
+	/// <param name="member">The member to accept.</param>
+	[Command("accept"), Description("Accepts a user through screening, granting them member roles.")]
+	[RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers), RequireBotPermissions(Permissions.ManageRoles), UsedImplicitly]
+	public async Task AcceptAsync(CommandContext ctx, 
+		[Description("User to accept screening for")] DiscordMember member)
 	{
 		// Check if the user is already a member.
 		if (await _screeningService.UserWasScreenedAsync(member))
@@ -38,8 +45,16 @@ public partial class BaseCommandGroup : BaseCommandModule
 		await _screeningService.AcceptMemberAsync(member, ctx.Member!);
 	}
 
+	/// <summary>
+	/// Rejects a user from the screening process.
+	/// </summary>
+	/// <param name="ctx">The context of the slash command.</param>
+	/// <param name="member">The member to reject.</param>
+	/// <param name="reason">The reason for rejecting the user.</param>
 	[Command("reject"), Description("Rejects a user from screening"), RequireValidScreenerConfig, RequirePermissions(Permissions.KickMembers), UsedImplicitly]
-	public async Task RejectAsync(CommandContext ctx, [Description("User to reject from screening")] DiscordMember member, [RemainingText] string? reason = null)
+	public async Task RejectAsync(CommandContext ctx, 
+		[Description("User to reject from screening")] DiscordMember member, 
+		[RemainingText, Description("Reason for rejection")] string? reason = null)
 	{
 		// Check if the user is already a member.
 		if (await _screeningService.UserWasScreenedAsync(member))

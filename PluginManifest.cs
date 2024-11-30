@@ -1,4 +1,4 @@
-﻿using DSharpPlus;
+using DSharpPlus;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +54,7 @@ public sealed class DependencyInjectionAddons : DependencyInjectionHandler
 		
 		services.AddSingleton<GuildConfigService>();
 		services.AddSingleton<ScreeningService>();
+		services.AddSingleton<GreetingService>();
 		
 		services.AddAuthorizationCore(options =>
 		{
